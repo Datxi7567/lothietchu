@@ -1,0 +1,207 @@
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
+local HttpService = game:GetService("HttpService")
+local player = Players.LocalPlayer
+
+local function addUICorner(guiObject, cornerRadius)
+    local uiCorner = Instance.new("UICorner")
+    uiCorner.CornerRadius = UDim.new(0, cornerRadius)
+    uiCorner.Parent = guiObject
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+local TextBox1 = Instance.new("TextBox")
+local TextBox2 = Instance.new("TextBox")
+local ToggleJoin1 = Instance.new("TextButton")
+local ToggleJoin2 = Instance.new("TextButton")
+local ToggleHoho = Instance.new("TextButton")
+local HopLessButton = Instance.new("TextButton")
+local isToggled = false
+local isJoin2Active = false
+local isHopping = false
+local maxCharacters1, maxCharacters2 = 36, 58
+
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+ScreenGui.DisplayOrder = 9999
+
+TextBox1.Parent = ScreenGui
+TextBox1.AnchorPoint = Vector2.new(1, 0)
+TextBox1.Position = UDim2.new(1, -10, 0, 0)
+TextBox1.Size = UDim2.new(0, 200, 0, 90)
+TextBox1.PlaceholderText = "Lý Lạc Đạt Oai"
+TextBox1.Text = ""
+TextBox1.TextScaled = true
+TextBox1.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+TextBox1.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox1.ZIndex = 10
+addUICorner(TextBox1, 12)
+
+TextBox2.Parent = ScreenGui
+TextBox2.AnchorPoint = Vector2.new(1, 0)
+TextBox2.Position = TextBox1.Position
+TextBox2.Size = TextBox1.Size
+TextBox2.PlaceholderText = "Lý Lạc Đạt Oai"
+TextBox2.Text = ""
+TextBox2.TextScaled = true
+TextBox2.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+TextBox2.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox2.ZIndex = 10
+TextBox2.Visible = false
+addUICorner(TextBox2, 12)
+
+ToggleJoin1.Parent = ScreenGui
+ToggleJoin1.AnchorPoint = Vector2.new(1, 0)
+ToggleJoin1.Position = UDim2.new(1, -10, 0, 100)
+ToggleJoin1.Size = UDim2.new(0, 200, 0, 50)
+ToggleJoin1.Text = "Join"
+ToggleJoin1.TextScaled = true
+ToggleJoin1.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ToggleJoin1.TextColor3 = Color3.fromRGB(255, 255, 255)
+addUICorner(ToggleJoin1, 12)
+
+ToggleJoin2.Parent = ScreenGui
+ToggleJoin2.AnchorPoint = ToggleJoin1.AnchorPoint
+ToggleJoin2.Position = ToggleJoin1.Position
+ToggleJoin2.Size = ToggleJoin1.Size
+ToggleJoin2.Text = "Join Hoho"
+ToggleJoin2.TextScaled = true
+ToggleJoin2.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+ToggleJoin2.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleJoin2.Visible = false
+addUICorner(ToggleJoin2, 12)
+
+ToggleHoho.Parent = ScreenGui
+ToggleHoho.AnchorPoint = Vector2.new(1, 0)
+ToggleHoho.Position = UDim2.new(1, -10, 0, 160)
+ToggleHoho.Size = UDim2.new(0, 200, 0, 50)
+ToggleHoho.Text = "HoHo MODE"
+ToggleHoho.TextScaled = true
+ToggleHoho.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+ToggleHoho.TextColor3 = Color3.fromRGB(255, 255, 255)
+addUICorner(ToggleHoho, 12)
+
+HopLessButton.Parent = ScreenGui
+HopLessButton.AnchorPoint = Vector2.new(1, 0)
+HopLessButton.Position = UDim2.new(1, -10, 0, 250)
+HopLessButton.Size = UDim2.new(0, 200, 0, 50)
+HopLessButton.Text = "Hop Less"
+HopLessButton.TextScaled = true
+HopLessButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+HopLessButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+addUICorner(HopLessButton, 12)
+
+TextBox1:GetPropertyChangedSignal("Text"):Connect(function()
+    if #TextBox1.Text > maxCharacters1 then
+        TextBox1.Text = TextBox1.Text:sub(1, maxCharacters1)
+    end
+end)
+
+TextBox2:GetPropertyChangedSignal("Text"):Connect(function()
+    if #TextBox2.Text > maxCharacters2 then
+        TextBox2.Text = TextBox2.Text:sub(1, maxCharacters2)
+    end
+end)
+
+local function sendTeleportRequest(serverId)
+    if serverId and serverId ~= "" then
+        ReplicatedStorage.__ServerBrowser:InvokeServer("teleport", serverId)
+    else
+        StarterGui:SetCore("SendNotification", { Title = "Đ.Oai", Text = "Nhập ID server!", Duration = 5 })
+    end
+end
+
+ToggleJoin1.MouseButton1Click:Connect(function()
+    isToggled = not isToggled
+    ToggleJoin1.Text = isToggled and "Đang Join" or "Join"
+
+    if isToggled then
+        local serverId = TextBox1.Text
+        spawn(function()
+            while isToggled do
+                sendTeleportRequest(serverId)
+                wait(0.01)
+            end
+        end)
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    if not gameProcessedEvent then
+        if isToggled then
+            isToggled = false
+            ToggleJoin1.Text = "Join"
+            StarterGui:SetCore("SendNotification", { 
+                Title = "Đ.Oai", 
+                Text = "Tắt rồi", 
+                Duration = 5 
+            })
+        end
+    end
+end)
+
+ToggleJoin2.MouseButton1Click:Connect(function()
+    isJoin2Active = not isJoin2Active
+    ToggleJoin2.Text = isJoin2Active and "Đang Join" or "Join Hoho"
+
+    if isJoin2Active then
+        local hohoServerId = TextBox2.Text
+        spawn(function()
+            while isJoin2Active do
+                _G.HOHO_SERVER_ID = {7449423635, hohoServerId}
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/acsu123/HohoV2/Free/BloxFruitFreeV3.lua"))()
+                pcall(function()
+                    game:GetService("Players").LocalPlayer.PlayerGui.HoHoG3:Destroy()
+                    game:GetService("CoreGui").HoHoG3:Destroy()
+                end)
+                wait(0.01)
+            end
+        end)
+    end
+end)
+
+ToggleHoho.MouseButton1Click:Connect(function()
+    local isHohoMode = not TextBox2.Visible
+    TextBox1.Visible = not isHohoMode
+    ToggleJoin1.Visible = not isHohoMode
+    TextBox2.Visible = isHohoMode
+    ToggleJoin2.Visible = isHohoMode
+end)
+
+HopLessButton.MouseButton1Click:Connect(function()
+    if isHopping then return end
+    isHopping = true
+
+    StarterGui:SetCore("SendNotification", { Title = "Đ.Oai", Text = "Đang HOP!", Duration = 25 })
+    local PlaceID = game.PlaceId
+    local AllIDs, foundAnything = {}, ""
+
+    local function TPReturner()
+        local Site = HttpService:JSONDecode(
+            game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100' .. 
+            (foundAnything ~= "" and '&cursor=' .. foundAnything or ""))
+        )
+
+        foundAnything = Site.nextPageCursor or ""
+
+        for _, server in ipairs(Site.data) do
+            if tonumber(server.maxPlayers) > tonumber(server.playing) and not AllIDs[server.id] then
+                AllIDs[server.id] = true
+                pcall(function()
+                    game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, server.id, player)
+                end)
+                break
+            end
+        end
+    end
+
+    spawn(function()
+        while isHopping do
+            TPReturner()
+            if foundAnything == "" then break end
+            wait(0.1)
+        end
+    end)
+end)
